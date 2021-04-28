@@ -29,7 +29,8 @@ test_config() {
 }
 
 fix_perm() {
-    chmod 600 -R ${AWS_FOLDER}
+    chmod 700 "${AWS_FOLDER}"
+    chmod 600 "${AWS_FOLDER}"/*
 }
 
 # test if region is mounted as secret
