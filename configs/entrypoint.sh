@@ -3,14 +3,21 @@
 nx_conf=/etc/nginx/nginx.conf
 
 AWS_IAM='http://169.254.169.254/latest/dynamic/instance-identity/document'
-AWS_FOLDER='/root/.aws'
+AWS_FOLDER="$HOME/.aws"
+
+if [ -z "$HTTP_PORT" ]; then
+    HTTP_PORT=80
+fi
+if [ -z "$HTTPS_PORT" ]; then
+    HTTPS_PORT=443
+fi
 
 header_config() {
     mkdir -p ${AWS_FOLDER}
-    echo "[default]" > /root/.aws/config
+    echo "[default]" > "$HOME/.aws/config"
 }
 region_config() {
-    echo  "region = $@" >> /root/.aws/config
+    echo  "region = $@" >> "$HOME/.aws/config"
 }
 
 test_iam() {
@@ -30,7 +37,7 @@ if test_config region
 then
     echo "region found in ~/.aws mounted as secret"
 # configure regions if variable specified at run time
-elif [[ "$REGION" != "" ]]
+elif [ "$REGION" != "" ]
 then
     header_config
     region_config $REGION
@@ -53,7 +60,7 @@ if test_config aws_access_key_id
 then
     echo "aws key and secret found in ~/.aws mounted as secrets"
 # if both key and secret are declared
-elif [[ "$AWS_KEY" != "" && "$AWS_SECRET" != "" ]]
+elif [ "$AWS_KEY" != "" ] && [ "$AWS_SECRET" != "" ]
 then
     echo "aws_access_key_id = $AWS_KEY
 aws_secret_access_key = $AWS_SECRET" >> ${AWS_FOLDER}/config
@@ -72,7 +79,7 @@ fi
 
 # update the auth token
 if [ "$REGISTRY_ID" = "" ]
-then 
+then
     aws_cli_exec=$(aws ecr get-login --no-include-email)
 else
     aws_cli_exec=$(aws ecr get-login --no-include-email --registry-ids $REGISTRY_ID)
@@ -84,6 +91,8 @@ reg_url=$(echo "${aws_cli_exec}" | awk '{print $7}')
 
 sed -i "s|${auth%??}|${auth_n}|g" ${nx_conf}
 sed -i "s|REGISTRY_URL|$reg_url|g" ${nx_conf}
+sed -i "s|HTTP_PORT|$HTTP_PORT|g" ${nx_conf}
+sed -i "s|HTTPS_PORT|$HTTPS_PORT|g" ${nx_conf}
 
 /renew_token.sh &
 
