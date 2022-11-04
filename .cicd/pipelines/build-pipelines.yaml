@@ -14,20 +14,3 @@ aws-ecr-proxy:
             contextPath: .
       macroRef:
         name: build-task-image
-
-aws-ecr-proxy-branch:
-  exclude_branch: develop|master
-  paths:
-    - "*"
-    - ".cicd/pipelines/build-pipelines.yaml"
-  tasks:
-    - name: build-task-image
-      type: macro
-      params:
-        docker:
-          image:
-            imageName: aws-ecr-proxy
-          build:
-            contextPath: .
-      macroRef:
-        name: build-task-image
